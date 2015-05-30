@@ -2,22 +2,14 @@ from pippi import dsp, tune
 from hcj import keys, fx, drums
 
 kick = dsp.read('../../sounds/organkick.wav').data
-hat = dsp.read('../../sounds/organsnare.wav').data
+hat = dsp.read('../../sounds/mc303shake.wav').data
 snare = dsp.read('../../sounds/organsnare.wav').data
 
 bpm = 100
-numbars = 8 * 4 * 4
-barlength = 6
+numbars = 8 * 2
 beat = dsp.bpm2frames(bpm)
 
-# rhodes chord sequence
-numchords = numbars
-
 out = ''
-
-# start with ran chord
-# each time mutate by moving up or down the scale by a step
-# each time between one and two voices move
 
 chord = [ dsp.randint(1, 15) for _ in range(4) ]
 
@@ -39,7 +31,9 @@ snarep = '  x '
 hatp = 'xx'
 
 def makeHat(length, i, amp):
-    h = dsp.fill(hat, length, silence=True)
+    h = dsp.cut(hat, 0, dsp.randint(dsp.mstf(10), dsp.mstf(60)))
+    h = dsp.amp(h, dsp.rand(0.3, 0.6))
+    h = dsp.fill(h, length, silence=True)
     return h
 
 def makeKick(length, i, amp):
@@ -54,7 +48,6 @@ def makeSnare(length, i, amp):
     s = dsp.amp(s, dsp.rand(2,4))
     return s
 
-commontone = dsp.randchoose(tune.fromdegrees(chord, octave=1, root='c'))
 commontone = dsp.randint(1, 9)
 
 for b in range(numbars):
@@ -64,9 +57,9 @@ for b in range(numbars):
     layers = []
 
     length = beat * dsp.randchoose([2, 3, 4, 6]) 
+
     for freq in tune.fromdegrees(chord, octave=2, root='c'):
-        #freq = freq * 2**dsp.randint(0,3)
-        amp = dsp.rand(0.25, 0.75)
+        amp = dsp.rand(0.25, 0.5)
         layer = keys.rhodes(length, freq, amp)
         layer = dsp.pan(layer, dsp.rand())
         layers += [ layer ]
@@ -90,23 +83,18 @@ for b in range(numbars):
     drone = dsp.randshuffle(drone)
     drone = ''.join(drone)
 
-    #hats = dsp.fill(dsp.fill(hat, beat / 4), dsp.flen(layers))
-    #kicks = dsp.fill(kick, dsp.flen(layers), silence=True)
-
-    hats = drums.parsebeat(hatp, 8, beat, dsp.flen(layers), makeHat, 12)
+    hats = drums.parsebeat(hatp, 16, beat, dsp.flen(layers), makeHat, 12)
     kicks = drums.parsebeat(kickp, 4, beat, dsp.flen(layers), makeKick, 0)
     snares = drums.parsebeat(snarep, 8, beat, dsp.flen(layers), makeSnare, 0)
 
-    #dr = dsp.mix([ hats, kicks, snares ])
+    #dr = dsp.mix([ dsp.env(hats, 'sine'), kicks, snares ])
     dr = dsp.mix([ kicks, snares ])
+
     d = dsp.split(dr, beat / 8)
     d = dsp.randshuffle(d)
-    #print len(d)
-    #d = dsp.packet_shuffle(d, dsp.randint(2, 4))
-    #print len(d)
     d = [ dd * dsp.randint(1, 2) for dd in d ]
     d = ''.join(d)
-    d = dsp.fill(dsp.mix([d, dr]), dsp.flen(layers))
+    d = dsp.fill(dsp.mix([d, dr, dsp.env(hats, 'hann')]), dsp.flen(layers))
 
     d = dsp.amp(d, 3)
 
