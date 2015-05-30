@@ -5,8 +5,8 @@ kick = dsp.read('../../sounds/organkick.wav').data
 hat = dsp.read('../../sounds/mc303shake.wav').data
 snare = dsp.read('../../sounds/organsnare.wav').data
 
-bpm = 100
-numbars = 8 * 2
+bpm = 80
+target_length = dsp.stf(60 * 4)
 beat = dsp.bpm2frames(bpm)
 
 out = ''
@@ -19,8 +19,8 @@ def nextChord(last):
         newdeg = deg + dsp.randchoose([-1,1])
         if newdeg == 0:
             newdeg = 1
-        #elif newdeg > 15:
-        #    newdeg = 15
+        elif newdeg > 15:
+            newdeg = 15
 
         last[last.index(deg)] = newdeg
 
@@ -32,6 +32,7 @@ hatp = 'xx'
 
 def makeHat(length, i, amp):
     h = dsp.cut(hat, 0, dsp.randint(dsp.mstf(10), dsp.mstf(60)))
+    h = dsp.env(h, 'phasor')
     h = dsp.amp(h, dsp.rand(0.3, 0.6))
     h = dsp.fill(h, length, silence=True)
     return h
@@ -50,7 +51,10 @@ def makeSnare(length, i, amp):
 
 commontone = dsp.randint(1, 9)
 
-for b in range(numbars):
+b = 0
+while dsp.flen(out) <= target_length:
+    bpm = bpm + dsp.randint(-5, 5)
+    beat = dsp.bpm2frames(bpm)
     if b % 4 == 0:
         chord = [ dsp.randint(1, 15) for _ in range(4) ]
 
@@ -66,7 +70,7 @@ for b in range(numbars):
 
     layers = dsp.mix(layers)
     ctf = tune.fromdegrees([ commontone ], octave=2, root='c')[0]
-    drone = dsp.mix([ keys.pulsar(ctf, dsp.flen(layers), amp=0.3) for _ in range(4) ])
+    drone = dsp.mix([ keys.pulsar(ctf, dsp.flen(layers), amp=dsp.rand(0.01, 0.1)) for _ in range(4) ])
 
     chord = nextChord(chord)
 
@@ -87,7 +91,6 @@ for b in range(numbars):
     kicks = drums.parsebeat(kickp, 4, beat, dsp.flen(layers), makeKick, 0)
     snares = drums.parsebeat(snarep, 8, beat, dsp.flen(layers), makeSnare, 0)
 
-    #dr = dsp.mix([ dsp.env(hats, 'sine'), kicks, snares ])
     dr = dsp.mix([ kicks, snares ])
 
     d = dsp.split(dr, beat / 8)
@@ -108,4 +111,6 @@ for b in range(numbars):
 
     out += layers
 
-dsp.write(out, 'out')
+    b += 1
+
+dsp.write(out, 'climbing')
