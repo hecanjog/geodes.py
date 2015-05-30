@@ -5,8 +5,8 @@ kick = dsp.read('../../sounds/organkick.wav').data
 hat = dsp.read('../../sounds/mc303shake.wav').data
 snare = dsp.read('../../sounds/organsnare.wav').data
 
-bpm = 80
-target_length = dsp.stf(60 * 4)
+bpm = 110
+target_length = dsp.stf(60 * 2)
 beat = dsp.bpm2frames(bpm)
 
 out = ''
@@ -53,8 +53,11 @@ commontone = dsp.randint(1, 9)
 
 b = 0
 while dsp.flen(out) <= target_length:
-    bpm = bpm + dsp.randint(-5, 5)
-    beat = dsp.bpm2frames(bpm)
+    print 'Rendering bar %s' % (b + 1)
+
+    #bpm = bpm + dsp.randint(-5, 5)
+    #beat = dsp.bpm2frames(bpm)
+
     if b % 4 == 0:
         chord = [ dsp.randint(1, 15) for _ in range(4) ]
 
