@@ -5,7 +5,7 @@ kick = dsp.read('../../sounds/organkick.wav').data
 hat = dsp.read('../../sounds/mc303shake.wav').data
 snare = dsp.read('../../sounds/organsnare.wav').data
 
-bpm = 110
+bpm = 100
 target_length = dsp.stf(60 * 2)
 beat = dsp.bpm2frames(bpm)
 
@@ -33,7 +33,7 @@ hatp = 'xx'
 def makeHat(length, i, amp):
     h = dsp.cut(hat, 0, dsp.randint(dsp.mstf(10), dsp.mstf(60)))
     h = dsp.env(h, 'phasor')
-    h = dsp.amp(h, dsp.rand(0.3, 0.6))
+    h = dsp.amp(h, dsp.rand(0.5, 0.9))
     h = dsp.fill(h, length, silence=True)
     return h
 
@@ -63,7 +63,8 @@ while dsp.flen(out) <= target_length:
 
     layers = []
 
-    length = beat * dsp.randchoose([2, 3, 4, 6]) 
+    #length = beat * dsp.randchoose([2, 3, 4, 6]) 
+    length = beat * 4
 
     for freq in tune.fromdegrees(chord, octave=2, root='c'):
         amp = dsp.rand(0.25, 0.5)
