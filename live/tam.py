@@ -2,30 +2,35 @@
 from pippi import dsp
 from pippi import tune
 
-midi = {'lpd': 7}
+midi = {'lpd': 5}
 
 def play(ctl):
     param = ctl.get('param')
     lpd = ctl.get('midi').get('lpd')
 
     scale = [ dsp.randchoose([1, 3, 5, 6, 8]) for s in range(dsp.randint(2, 4)) ]
+    #scale = [ dsp.randchoose([1, 2, 4, 6, 8]) for s in range(dsp.randint(2, 4)) ]
 
-    freqs = tune.fromdegrees(scale, root='c', octave=dsp.randint(0, 2))
+    freqs = tune.fromdegrees(scale, root='a', octave=dsp.randint(2,3), scale=tune.minor)
     freq = dsp.randchoose(freqs)
 
     pw = lpd.get(2, low=0.01, high=1, default=1)
     pw = dsp.rand(0.01, 1)
     modr = lpd.get(6, low=0.001, high=0.1)
-    modr = dsp.rand(0.001, 0.1)
+    modr = dsp.rand(0.001, 0.05)
+    #modr = dsp.rand(0.1, 10.5)
+    #modr = dsp.rand(0.001, 0.01)
     modr = dsp.rand(0, modr)
     modf = dsp.rand(0.01, 0.05)
     amp = lpd.get(1, low=0, high=2, default=0)
-    amp = dsp.rand(0.5, 1)
+    #amp = dsp.rand(0.1, 0.5)
+    #amp = 0
 
     length = dsp.stf(lpd.get(5, low=0.5, high=14, default=1) * dsp.rand(0.75, 2))
     length = dsp.stf(dsp.rand(5.5, 24) * dsp.rand(0.75, 2))
+    #length = dsp.stf(dsp.rand(0.5, 0.75) * dsp.rand(0.75, 2))
 
-    wf = dsp.breakpoint([0] + [ dsp.rand(-1, 1) for w in range(5) ] + [0], 512)
+    wf = dsp.breakpoint([0] + [ dsp.rand(-1, 1) for w in range(10) ] + [0], 512)
     #wf = dsp.wavetable('sine2pi', 512)
     #wf = dsp.wavetable('sine2pi', 512)
     #win = dsp.wavetable('sine', 512)
@@ -34,7 +39,7 @@ def play(ctl):
 
     layers = []
 
-    harmonics = [1, 2, 3, 4, 5]
+    harmonics = [1, 2, 3, 4]
 
     for harmonic in harmonics:
         f = freq * harmonic
@@ -62,6 +67,7 @@ def play(ctl):
     out = dsp.mix(layers)
     out = dsp.env(out, 'sine')
     out = dsp.env(out, 'hann')
+    #out = dsp.env(out, 'phasor')
     out = dsp.taper(out)
 
     return out

@@ -1,14 +1,14 @@
 from pippi import dsp
 from pippi import tune
 
-midi = {'pc': 3, 'lpd': 7}
+midi = {'pc': 3, 'lpd': 5}
 
 def play(ctl):
     param = ctl.get('param')
     lpd = ctl.get('midi').get('lpd')
 
     pc = ctl.get('midi').get('pc')
-    pc.setOffset(111)
+    #pc.setOffset(111)
 
     gamut = {
         'high': [
@@ -37,26 +37,27 @@ def play(ctl):
 
     area = param.get('wash-area', default='high')
     area = dsp.randchoose(['high', 'mid', 'pitch', 'low'])
+    area = 'pitch'
 
     dsp.log(area)
 
     freqs = dsp.randchoose(gamut[area])
 
-    freqscale = pc.get(13, low=0.125, high=2, default=1)
-    freqscale = dsp.rand(0.125, 2)
+    freqscale = pc.get(16, low=0.125, high=2, default=1)
+    #freqscale = dsp.rand(0.125, 2)
 
     low = freqs[0] * freqscale
     high = freqs[1] * freqscale
 
     wform = dsp.randchoose(['sine2pi', 'tri', 'vary', 'square'])
 
-    timescale = pc.get(5, low=1, high=4, default=1)
-    timescale = dsp.rand(1, 4)
-    lengthscale = pc.get(12, low=0.125, high=2.5)
-    lengthscale = dsp.rand(0.125, 2.5)
+    timescale = pc.get(17, low=1, high=4, default=1)
+    #timescale = dsp.rand(1, 4)
+    lengthscale = pc.get(18, low=0.125, high=2.5)
+    #lengthscale = dsp.rand(0.125, 2.5)
 
-    amp = pc.get(4, low=0, high=1, default=0.5)
-    amp = dsp.rand(0, 0.5)
+    amp = pc.get(0, low=0, high=0.5, default=0.5)
+    #amp = dsp.rand(0, 0.5)
 
     if area == 'high':
         low = dsp.rand(low * 0.9, low)
@@ -107,11 +108,16 @@ def play(ctl):
         out = dsp.env(out, 'random')
         out = dsp.mix([out, dsp.tone(length, low)])
 
+        if dsp.rand() > 0.5:
+            beep = dsp.tone(dsp.flen(out), high, amp=dsp.rand(0.015, 0.1), wavetype=dsp.randchoose(['hann', 'impulse', 'square', 'vary', 'sine']))
+            out = dsp.mix([out, beep])
+
+
         if timescale > 1:
             out = dsp.pad(out, 0, dsp.mstf(500 * timescale * dsp.rand(0.5, 1.5)))
 
 
-    if dsp.rand() > pc.get(14, low=0, high=1, default=0.75):
+    if dsp.rand() > pc.get(19, low=0, high=1, default=0.75):
         plength = length * dsp.randint(2, 6)
         freq = tune.ntf(param.get('key', default='c'), octave=dsp.randint(0, 4))
         out = dsp.mix([ dsp.pine(out, plength, freq), dsp.pine(out, plength, freq * 1.25) ])
